@@ -142,9 +142,15 @@
         <button onclick="checkPassword()">ОК</button>
 
         <div id="notesContent" style="display:none; margin-top:10px;">
-            <textarea id="notesArea" rows="5" cols="30" placeholder="Пиши свои заметки..."></textarea>
+           <div id="notesList"></div>
+
+<br>
+<button onclick="addNote()">➕ Добавить заметку</button>
         </div>
     </div>
+<button id="secretGameBtn" onclick="openMiniGame()" style="display:none;">
+    🎮 Секретная игра
+</button>
 
     <p id="result"></p>
     <p id="lives">❤️ Жизни: 3</p>
@@ -157,6 +163,7 @@
         let secret = Math.floor(Math.random() * 12) + 1;
         let lives = 3;
         let score = 0;
+let lastInputs = [];
 
         let best = localStorage.getItem("bestScore") || 0;
         let loseBest = localStorage.getItem("loseScore") || 0;
@@ -190,67 +197,77 @@
             document.getElementById("passwordInput").value = "";
         }
 
-        function check() {
-            let user = Number(document.getElementById("guess").value);
+function check() {
+    let user = Number(document.getElementById("guess").value);
 
-            // секретная кнопка
-            if (user === 65) {
-                document.getElementById("secretBtn").style.display = "inline-block";
-            }
+    // сохраняем ввод
+    lastInputs.push(user);
 
-            let result = document.getElementById("result");
-            let livesText = document.getElementById("lives");
+    // оставляем только 2 последних
+    if (lastInputs.length > 2) {
+        lastInputs.shift();
+    }
 
-            if (lives <= 0) {
-                result.innerHTML = "💀 Игра окончена!";
-                return;
-            }
+    // секретная комбинация 69 → 65
+    if (lastInputs[0] === 69 && lastInputs[1] === 65) {
+        document.getElementById("secretGameBtn").style.display = "inline-block";
+    }
 
-            if (user === secret) {
-                score++;
-                document.getElementById("score").innerHTML = "🏆 Победы: " + score;
+    // обычная секретка
+    if (user === 65) {
+        document.getElementById("secretBtn").style.display = "inline-block";
+    }
 
-                if (score > best) {
-                    best = score;
-                    localStorage.setItem("bestScore", best);
-                    document.getElementById("best").innerHTML = "🥇 Рекорд: " + best;
-                }
+    let result = document.getElementById("result");
+    let livesText = document.getElementById("lives");
 
-                updateWinrate();
-                result.innerHTML = "🎉 Ты угадал!";
-let flash = document.getElementById("flashEffect");
+    if (lives <= 0) {
+        result.innerHTML = "💀 Игра окончена!";
+        return;
+    }
 
-flash.classList.add("flash-active");
+    if (user === secret) {
+        score++;
+        document.getElementById("score").innerHTML = "🏆 Победы: " + score;
 
-setTimeout(() => {
-    flash.classList.remove("flash-active");
-}, 500);
-
-setTimeout(() => {
-    document.body.classList.remove("flash");
-}, 500);
-            } else {
-                lives--;
-
-                if (lives > 0) {
-                    if (user < secret) {
-                        result.innerHTML = "⬆️ Загаданное число больше!";
-                    } else {
-                        result.innerHTML = "⬇️ Загаданное число меньше!";
-                    }
-                    livesText.innerHTML = "❤️ Жизни: " + lives;
-                } else {
-                    loseBest++;
-                    localStorage.setItem("loseScore", loseBest);
-                    document.getElementById("loseBest").innerHTML = "💀 Поражения: " + loseBest;
-
-                    updateWinrate();
-
-                    result.innerHTML = "💀 Ты проиграл! Было число " + secret;
-                    livesText.innerHTML = "❤️ Жизни: 0";
-                }
-            }
+        if (score > best) {
+            best = score;
+            localStorage.setItem("bestScore", best);
+            document.getElementById("best").innerHTML = "🥇 Рекорд: " + best;
         }
+
+        updateWinrate();
+        result.innerHTML = "🎉 Ты угадал!";
+
+        let flash = document.getElementById("flashEffect");
+        flash.classList.add("flash-active");
+
+        setTimeout(() => {
+            flash.classList.remove("flash-active");
+        }, 500);
+
+    } else {
+        lives--;
+
+        if (lives > 0) {
+            if (user < secret) {
+                result.innerHTML = "⬆️ Загаданное число больше!";
+            } else {
+                result.innerHTML = "⬇️ Загаданное число меньше!";
+            }
+            livesText.innerHTML = "❤️ Жизни: " + lives;
+        } else {
+            loseBest++;
+            localStorage.setItem("loseScore", loseBest);
+            document.getElementById("loseBest").innerHTML = "💀 Поражения: " + loseBest;
+
+            updateWinrate();
+
+            result.innerHTML = "💀 Ты проиграл! Было число " + secret;
+            livesText.innerHTML = "❤️ Жизни: 0";
+        }
+    }
+}
 
         function restart() {
             secret = Math.floor(Math.random() * 12) + 1;
@@ -273,18 +290,149 @@ setTimeout(() => {
             document.getElementById("winrate").innerHTML = "📊 Процент побед: " + percent + "%";
         }
 
-        // 💾 сохранение заметок
-        let notesArea = document.getElementById("notesArea");
 
-        notesArea.addEventListener("input", function() {
-            localStorage.setItem("myNotes", notesArea.value);
+// ================= ЗАМЕТКИ =================
+
+let notes = JSON.parse(localStorage.getItem("myNotesList")) || [];
+
+// создать заметку
+function addNote(text = "", pinned = false) {
+    let container = document.getElementById("notesList");
+
+    let noteDiv = document.createElement("div");
+    noteDiv.style.marginTop = "10px";
+
+    let textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.rows = 4;
+    textarea.style.display = "block";
+
+    textarea.addEventListener("input", saveNotes);
+
+    // ❌ удалить
+    let deleteBtn = document.createElement("button");
+    deleteBtn.innerHTML = "❌";
+    deleteBtn.onclick = function () {
+        noteDiv.remove();
+        saveNotes();
+    };
+
+    // 📌 закрепить
+    let pinBtn = document.createElement("button");
+    pinBtn.innerHTML = "📌";
+    pinBtn.onclick = function () {
+        container.prepend(noteDiv);
+        saveNotes();
+    };
+
+    noteDiv.appendChild(textarea);
+    noteDiv.appendChild(pinBtn);
+    noteDiv.appendChild(deleteBtn);
+
+    if (pinned) {
+        container.prepend(noteDiv);
+    } else {
+        container.appendChild(noteDiv);
+
+saveNotes();
+
+    }
+}
+
+// сохранить
+function saveNotes() {
+    let notesData = [];
+
+    let allNotes = document.querySelectorAll("#notesList > div");
+
+    allNotes.forEach(note => {
+        let text = note.querySelector("textarea").value;
+
+        notesData.push({
+            text: text
+        });
+    });
+
+    localStorage.setItem("myNotesList", JSON.stringify(notesData));
+}
+
+// загрузка
+function loadNotes() {
+    notes.forEach(note => addNote(note));
+}
+
+// запуск
+loadNotes();
+
+function openMiniGame() {
+    document.getElementById("gameCanvas").style.display = "block";
+    startGame();
+}
+
+function startGame() {
+    let canvas = document.getElementById("gameCanvas");
+    let ctx = canvas.getContext("2d");
+
+    let balls = [];
+
+    // создаём 4 шарика
+    for (let i = 0; i < 4; i++) {
+        balls.push({
+            x: Math.random() * 350,
+            y: Math.random() * 350,
+            dx: (Math.random() - 0.5) * 4,
+            dy: (Math.random() - 0.5) * 4,
+            radius: 15
+        });
+    }
+
+    function update() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        balls.forEach(ball => {
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // от стен
+            if (ball.x < 0 || ball.x > canvas.width) ball.dx *= -1;
+            if (ball.y < 0 || ball.y > canvas.height) ball.dy *= -1;
         });
 
-        let savedNotes = localStorage.getItem("myNotes");
-        if (savedNotes) {
-            notesArea.value = savedNotes;
+        // столкновения
+        for (let i = 0; i < balls.length; i++) {
+            for (let j = i + 1; j < balls.length; j++) {
+                let dx = balls[i].x - balls[j].x;
+                let dy = balls[i].y - balls[j].y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 30) {
+                    // отталкивание
+                    balls[i].dx *= -1;
+                    balls[i].dy *= -1;
+                    balls[j].dx *= -1;
+                    balls[j].dy *= -1;
+                }
+            }
         }
+
+        // рисуем
+        balls.forEach(ball => {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "cyan";
+            ctx.fill();
+        });
+
+        requestAnimationFrame(update);
+    }
+
+    update();
+}
+
+
     </script>
+
+<canvas id="gameCanvas" width="400" height="400" style="display:none; background:black; margin-top:20px;"></canvas>
 
 </body>
 </html>
