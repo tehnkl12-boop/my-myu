@@ -84,6 +84,16 @@
         display: inline-block;
         margin-top: 15px;
     }
+@keyframes flash {
+    0% { background-color: #1e1e2f; }
+    50% { background-color: yellow; }
+    100% { background-color: #1e1e2f; }
+}
+
+.flash {
+    animation: flash 0.7s ease;
+}
+
 
     </style>
 
@@ -133,7 +143,7 @@
         document.getElementById("loseBest").innerHTML = "💀 Поражения: " + loseBest;
 
         // 🔐 пароль
-        let correctPassword = "1234";
+        let correctPassword = "sliuha";
 
         function checkPassword() {
             let input = document.getElementById("passwordInput").value;
@@ -186,6 +196,11 @@
 
                 updateWinrate();
                 result.innerHTML = "🎉 Ты угадал!";
+document.body.classList.add("flash");
+
+setTimeout(() => {
+    document.body.classList.remove("flash");
+}, 500);
             } else {
                 lives--;
 
