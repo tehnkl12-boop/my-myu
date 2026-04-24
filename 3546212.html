@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Мини-игра</title>
+
+    <style>
+        body {
+            background-color: #1e1e2f;
+            color: white;
+            font-family: Arial;
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 18px;
+            width: 100px;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #4dd0e1;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 22px;
+        }
+
+        #lives {
+            margin-top: 10px;
+            font-size: 20px;
+            color: #ff6b6b;
+        }
+    </style>
+
+</head>
+<body>
+
+    <h1>🎮 Угадай число</h1>
+
+    <p>Я загадал число от 1 до 12</p>
+
+    <input type="number" id="guess" min="1" max="12">
+    <button onclick="check()">Проверить</button>
+    <br>
+    <button onclick="restart()">🔄 Играть заново</button>
+
+    <br>
+    <button id="secretBtn" onclick="toggleNotes()" style="display:none;">
+        🔐 Открыть заметки
+    </button>
+
+    <div id="notes" style="display:none; margin-top:20px;">
+        <p>🔑 Введи пароль:</p>
+        <input type="password" id="passwordInput">
+        <button onclick="checkPassword()">ОК</button>
+
+        <div id="notesContent" style="display:none; margin-top:10px;">
+            <textarea id="notesArea" rows="5" cols="30" placeholder="Пиши свои заметки..."></textarea>
+        </div>
+    </div>
+
+    <p id="result"></p>
+    <p id="lives">❤️ Жизни: 3</p>
+    <p id="score">🏆 Победы: 0</p>
+    <p id="best">🥇 Рекорд: 0</p>
+    <p id="loseBest">💀 Поражения: 0</p>
+    <p id="winrate">📊 Процент побед: 0%</p>
+
+    <script>
+        let secret = Math.floor(Math.random() * 12) + 1;
+        let lives = 3;
+        let score = 0;
+
+        let best = localStorage.getItem("bestScore") || 0;
+        let loseBest = localStorage.getItem("loseScore") || 0;
+
+        document.getElementById("best").innerHTML = "🥇 Рекорд: " + best;
+        document.getElementById("loseBest").innerHTML = "💀 Поражения: " + loseBest;
+
+        // 🔐 пароль
+        let correctPassword = "1234";
+
+        function checkPassword() {
+            let input = document.getElementById("passwordInput").value;
+
+            if (input === correctPassword) {
+                document.getElementById("notesContent").style.display = "block";
+            } else {
+                alert("❌ Неверный пароль");
+            }
+        }
+
+        function toggleNotes() {
+            let notes = document.getElementById("notes");
+
+            if (notes.style.display === "none") {
+                notes.style.display = "block";
+            } else {
+                notes.style.display = "none";
+            }
+
+            document.getElementById("notesContent").style.display = "none";
+            document.getElementById("passwordInput").value = "";
+        }
+
+        function check() {
+            let user = Number(document.getElementById("guess").value);
+
+            // секретная кнопка
+            if (user === 65) {
+                document.getElementById("secretBtn").style.display = "inline-block";
+            }
+
+            let result = document.getElementById("result");
+            let livesText = document.getElementById("lives");
+
+            if (lives <= 0) {
+                result.innerHTML = "💀 Игра окончена!";
+                return;
+            }
+
+            if (user === secret) {
+                score++;
+                document.getElementById("score").innerHTML = "🏆 Победы: " + score;
+
+                if (score > best) {
+                    best = score;
+                    localStorage.setItem("bestScore", best);
+                    document.getElementById("best").innerHTML = "🥇 Рекорд: " + best;
+                }
+
+                updateWinrate();
+                result.innerHTML = "🎉 Ты угадал!";
+            } else {
+                lives--;
+
+                if (lives > 0) {
+                    if (user < secret) {
+                        result.innerHTML = "⬆️ Загаданное число больше!";
+                    } else {
+                        result.innerHTML = "⬇️ Загаданное число меньше!";
+                    }
+                    livesText.innerHTML = "❤️ Жизни: " + lives;
+                } else {
+                    loseBest++;
+                    localStorage.setItem("loseScore", loseBest);
+                    document.getElementById("loseBest").innerHTML = "💀 Поражения: " + loseBest;
+
+                    updateWinrate();
+
+                    result.innerHTML = "💀 Ты проиграл! Было число " + secret;
+                    livesText.innerHTML = "❤️ Жизни: 0";
+                }
+            }
+        }
+
+        function restart() {
+            secret = Math.floor(Math.random() * 12) + 1;
+            lives = 3;
+
+            document.getElementById("result").innerHTML = "";
+            document.getElementById("lives").innerHTML = "❤️ Жизни: 3";
+            document.getElementById("guess").value = "";
+        }
+
+        function updateWinrate() {
+            let total = score + loseBest;
+
+            if (total === 0) {
+                document.getElementById("winrate").innerHTML = "📊 Процент побед: 0%";
+                return;
+            }
+
+            let percent = Math.floor((score / total) * 100);
+            document.getElementById("winrate").innerHTML = "📊 Процент побед: " + percent + "%";
+        }
+
+        // 💾 сохранение заметок
+        let notesArea = document.getElementById("notesArea");
+
+        notesArea.addEventListener("input", function() {
+            localStorage.setItem("myNotes", notesArea.value);
+        });
+
+        let savedNotes = localStorage.getItem("myNotes");
+        if (savedNotes) {
+            notesArea.value = savedNotes;
+        }
+    </script>
+
+</body>
+</html>
