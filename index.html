@@ -93,13 +93,35 @@
 .flash {
     animation: flash 0.7s ease;
 }
+#flashEffect {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 
+    background: yellow;
+    opacity: 0;
+
+    pointer-events: none;
+}
+
+.flash-active {
+    animation: flashScreen 0.5s ease;
+}
+
+@keyframes flashScreen {
+    0% { opacity: 0; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0; }
+}
 
     </style>
 
 </head>
 <body>
 
+<div id="flashEffect"></div>
     <h1>🎮 Угадай число</h1>
 
     <p>Я загадал число от 1 до 12</p>
@@ -196,7 +218,13 @@
 
                 updateWinrate();
                 result.innerHTML = "🎉 Ты угадал!";
-document.body.classList.add("flash");
+let flash = document.getElementById("flashEffect");
+
+flash.classList.add("flash-active");
+
+setTimeout(() => {
+    flash.classList.remove("flash-active");
+}, 500);
 
 setTimeout(() => {
     document.body.classList.remove("flash");
