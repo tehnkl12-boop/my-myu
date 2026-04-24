@@ -4,41 +4,87 @@
     <title>Мини-игра</title>
 
     <style>
-        body {
-            background-color: #1e1e2f;
-            color: white;
-            font-family: Arial;
-            text-align: center;
-            margin-top: 80px;
-        }
 
-        input {
-            padding: 10px;
-            font-size: 18px;
-            width: 100px;
-            text-align: center;
-        }
+    body {
+        background: linear-gradient(135deg, #1e1e2f, #2a2a4a);
+        color: white;
+        font-family: Arial;
+        text-align: center;
+        margin-top: 50px;
+    }
 
-        button {
-            padding: 10px 20px;
-            font-size: 18px;
-            margin: 5px;
-            cursor: pointer;
-            border: none;
-            border-radius: 8px;
-            background-color: #4dd0e1;
-        }
+    h1 {
+        font-size: 40px;
+        margin-bottom: 10px;
+        text-shadow: 0 0 10px #4dd0e1;
+    }
 
-        #result {
-            margin-top: 20px;
-            font-size: 22px;
-        }
+    p {
+        font-size: 18px;
+    }
 
-        #lives {
-            margin-top: 10px;
-            font-size: 20px;
-            color: #ff6b6b;
-        }
+    input {
+        padding: 12px;
+        font-size: 18px;
+        width: 120px;
+        text-align: center;
+        border-radius: 10px;
+        border: none;
+        outline: none;
+        margin-top: 10px;
+    }
+
+    button {
+        padding: 12px 25px;
+        font-size: 18px;
+        margin: 8px;
+        cursor: pointer;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(45deg, #4dd0e1, #26c6da);
+        color: black;
+        transition: 0.3s;
+    }
+
+    button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 15px #4dd0e1;
+    }
+
+    #result {
+        margin-top: 20px;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    #lives {
+        margin-top: 10px;
+        font-size: 20px;
+        color: #ff6b6b;
+    }
+
+    #score, #best, #loseBest, #winrate {
+        margin-top: 5px;
+        font-size: 18px;
+    }
+
+    textarea {
+        margin-top: 10px;
+        border-radius: 10px;
+        padding: 10px;
+        border: none;
+        outline: none;
+        resize: none;
+    }
+
+    #notes {
+        background: rgba(0,0,0,0.3);
+        padding: 15px;
+        border-radius: 15px;
+        display: inline-block;
+        margin-top: 15px;
+    }
+
     </style>
 
 </head>
