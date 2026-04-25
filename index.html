@@ -4,7 +4,6 @@
     <title>Мини-игра</title>
 
     <style>
-
     body {
         background: linear-gradient(135deg, #1e1e2f, #2a2a4a);
         color: white;
@@ -15,411 +14,277 @@
 
     h1 {
         font-size: 40px;
-        margin-bottom: 10px;
         text-shadow: 0 0 10px #4dd0e1;
-    }
-
-    p {
-        font-size: 18px;
     }
 
     input {
         padding: 12px;
         font-size: 18px;
         width: 120px;
-        text-align: center;
         border-radius: 10px;
         border: none;
-        outline: none;
-        margin-top: 10px;
+        text-align: center;
     }
 
     button {
         padding: 12px 25px;
         font-size: 18px;
         margin: 8px;
-        cursor: pointer;
-        border: none;
         border-radius: 10px;
+        border: none;
         background: linear-gradient(45deg, #4dd0e1, #26c6da);
-        color: black;
-        transition: 0.3s;
+        cursor: pointer;
     }
 
     button:hover {
         transform: scale(1.1);
-        box-shadow: 0 0 15px #4dd0e1;
-    }
-
-    #result {
-        margin-top: 20px;
-        font-size: 24px;
-        font-weight: bold;
-    }
-
-    #lives {
-        margin-top: 10px;
-        font-size: 20px;
-        color: #ff6b6b;
-    }
-
-    #score, #best, #loseBest, #winrate {
-        margin-top: 5px;
-        font-size: 18px;
     }
 
     textarea {
-        margin-top: 10px;
+        display: block;
+        margin: 5px auto;
         border-radius: 10px;
-        padding: 10px;
-        border: none;
-        outline: none;
-        resize: none;
+        padding: 8px;
     }
 
     #notes {
         background: rgba(0,0,0,0.3);
         padding: 15px;
         border-radius: 15px;
-        display: inline-block;
         margin-top: 15px;
     }
-@keyframes flash {
-    0% { background-color: #1e1e2f; }
-    50% { background-color: yellow; }
-    100% { background-color: #1e1e2f; }
-}
 
-.flash {
-    animation: flash 0.7s ease;
-}
-#flashEffect {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    #flashEffect {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        background: yellow;
+        opacity: 0;
+        pointer-events: none;
+    }
 
-    background: yellow;
-    opacity: 0;
+    .flash-active {
+        animation: flash 0.5s;
+    }
 
-    pointer-events: none;
-}
-
-.flash-active {
-    animation: flashScreen 0.5s ease;
-}
-
-@keyframes flashScreen {
-    0% { opacity: 0; }
-    50% { opacity: 0.8; }
-    100% { opacity: 0; }
-}
-
+    @keyframes flash {
+        0% {opacity:0;}
+        50% {opacity:0.8;}
+        100% {opacity:0;}
+    }
     </style>
-
 </head>
+
 <body>
 
 <div id="flashEffect"></div>
-    <h1>🎮 Угадай число</h1>
 
-    <p>Я загадал число от 1 до 12</p>
+<h1>🎮 Угадай число</h1>
+<p>Я загадал число от 1 до 12</p>
 
-    <input type="number" id="guess" min="1" max="12">
-    <button onclick="check()">Проверить</button>
-    <br>
-    <button onclick="restart()">🔄 Играть заново</button>
+<input type="number" id="guess">
+<button onclick="check()">Проверить</button><br>
+<button onclick="restart()">🔄 Играть заново</button><br>
 
-    <br>
-    <button id="secretBtn" onclick="toggleNotes()" style="display:none;">
-        🔐 Открыть заметки
-    </button>
+<button id="secretBtn" onclick="toggleNotes()" style="display:none;">🔐 Заметки</button>
+<button id="secretGameBtn" onclick="openMiniGame()" style="display:none;">🎮 Секретная игра</button>
 
-    <div id="notes" style="display:none; margin-top:20px;">
-        <p>🔑 Введи пароль:</p>
-        <input type="password" id="passwordInput">
-        <button onclick="checkPassword()">ОК</button>
+<div id="notes" style="display:none;">
+    <input type="password" id="passwordInput" placeholder="Пароль">
+    <button onclick="checkPassword()">ОК</button>
 
-        <div id="notesContent" style="display:none; margin-top:10px;">
-           <div id="notesList"></div>
-
-<br>
-<button onclick="addNote()">➕ Добавить заметку</button>
-        </div>
+    <div id="notesContent" style="display:none;">
+        <div id="notesList"></div>
+        <button onclick="addNote()">➕ Добавить</button>
     </div>
-<button id="secretGameBtn" onclick="openMiniGame()" style="display:none;">
-    🎮 Секретная игра
-</button>
+</div>
 
-    <p id="result"></p>
-    <p id="lives">❤️ Жизни: 3</p>
-    <p id="score">🏆 Победы: 0</p>
-    <p id="best">🥇 Рекорд: 0</p>
-    <p id="loseBest">💀 Поражения: 0</p>
-    <p id="winrate">📊 Процент побед: 0%</p>
+<p id="result"></p>
+<p id="lives">❤️ Жизни: 3</p>
+<p id="score">🏆 Победы: 0</p>
+<p id="best">🥇 Рекорд: 0</p>
+<p id="loseBest">💀 Поражения: 0</p>
+<p id="winrate">📊 0%</p>
 
-    <script>
-        let secret = Math.floor(Math.random() * 12) + 1;
-        let lives = 3;
-        let score = 0;
+<canvas id="gameCanvas" width="400" height="400" style="display:none; background:black;"></canvas>
+
+<script>
+let secret = Math.floor(Math.random()*12)+1;
+let lives = 3;
+let score = 0;
 let lastInputs = [];
 
-        let best = localStorage.getItem("bestScore") || 0;
-        let loseBest = localStorage.getItem("loseScore") || 0;
+let best = localStorage.getItem("bestScore") || 0;
+let lose = localStorage.getItem("loseScore") || 0;
 
-        document.getElementById("best").innerHTML = "🥇 Рекорд: " + best;
-        document.getElementById("loseBest").innerHTML = "💀 Поражения: " + loseBest;
+document.getElementById("best").innerHTML = "🥇 Рекорд: " + best;
+document.getElementById("loseBest").innerHTML = "💀 Поражения: " + lose;
 
-        // 🔐 пароль
-        let correctPassword = "sliuha";
+function check(){
+    let user = Number(guess.value);
 
-        function checkPassword() {
-            let input = document.getElementById("passwordInput").value;
-
-            if (input === correctPassword) {
-                document.getElementById("notesContent").style.display = "block";
-            } else {
-                alert("❌ Неверный пароль");
-            }
-        }
-
-        function toggleNotes() {
-            let notes = document.getElementById("notes");
-
-            if (notes.style.display === "none") {
-                notes.style.display = "block";
-            } else {
-                notes.style.display = "none";
-            }
-
-            document.getElementById("notesContent").style.display = "none";
-            document.getElementById("passwordInput").value = "";
-        }
-
-function check() {
-    let user = Number(document.getElementById("guess").value);
-
-    // сохраняем ввод
     lastInputs.push(user);
+    if(lastInputs.length>2) lastInputs.shift();
 
-    // оставляем только 2 последних
-    if (lastInputs.length > 2) {
-        lastInputs.shift();
+    if(lastInputs[0]==69 && lastInputs[1]==65){
+        secretGameBtn.style.display="inline-block";
     }
 
-    // секретная комбинация 69 → 65
-    if (lastInputs[0] === 69 && lastInputs[1] === 65) {
-        document.getElementById("secretGameBtn").style.display = "inline-block";
+    if(user==65){
+        secretBtn.style.display="inline-block";
     }
 
-    // обычная секретка
-    if (user === 65) {
-        document.getElementById("secretBtn").style.display = "inline-block";
-    }
+    if(lives<=0) return;
 
-    let result = document.getElementById("result");
-    let livesText = document.getElementById("lives");
-
-    if (lives <= 0) {
-        result.innerHTML = "💀 Игра окончена!";
-        return;
-    }
-
-    if (user === secret) {
+    if(user==secret){
         score++;
-        document.getElementById("score").innerHTML = "🏆 Победы: " + score;
+        scoreEl.innerHTML="🏆 Победы: "+score;
 
-        if (score > best) {
-            best = score;
-            localStorage.setItem("bestScore", best);
-            document.getElementById("best").innerHTML = "🥇 Рекорд: " + best;
+        if(score>best){
+            best=score;
+            localStorage.setItem("bestScore",best);
+            bestEl.innerHTML="🥇 Рекорд: "+best;
         }
+
+        result.innerHTML="🎉 Угадал!";
+        flashEffect.classList.add("flash-active");
+        setTimeout(()=>flashEffect.classList.remove("flash-active"),500);
 
         updateWinrate();
-        result.innerHTML = "🎉 Ты угадал!";
-
-        let flash = document.getElementById("flashEffect");
-        flash.classList.add("flash-active");
-
-        setTimeout(() => {
-            flash.classList.remove("flash-active");
-        }, 500);
-
     } else {
         lives--;
+        livesEl.innerHTML="❤️ Жизни: "+lives;
 
-        if (lives > 0) {
-            if (user < secret) {
-                result.innerHTML = "⬆️ Загаданное число больше!";
-            } else {
-                result.innerHTML = "⬇️ Загаданное число меньше!";
-            }
-            livesText.innerHTML = "❤️ Жизни: " + lives;
-        } else {
-            loseBest++;
-            localStorage.setItem("loseScore", loseBest);
-            document.getElementById("loseBest").innerHTML = "💀 Поражения: " + loseBest;
-
+        if(lives<=0){
+            lose++;
+            localStorage.setItem("loseScore",lose);
+            loseBest.innerHTML="💀 Поражения: "+lose;
+            result.innerHTML="💀 Проиграл ("+secret+")";
             updateWinrate();
-
-            result.innerHTML = "💀 Ты проиграл! Было число " + secret;
-            livesText.innerHTML = "❤️ Жизни: 0";
+        } else {
+            result.innerHTML = user<secret ? "⬆️ Больше" : "⬇️ Меньше";
         }
     }
 }
 
-        function restart() {
-            secret = Math.floor(Math.random() * 12) + 1;
-            lives = 3;
+function restart(){
+    secret=Math.floor(Math.random()*12)+1;
+    lives=3;
+    result.innerHTML="";
+    livesEl.innerHTML="❤️ Жизни: 3";
+    guess.value="";
+}
 
-            document.getElementById("result").innerHTML = "";
-            document.getElementById("lives").innerHTML = "❤️ Жизни: 3";
-            document.getElementById("guess").value = "";
-        }
+function updateWinrate(){
+    let total=score+lose;
+    winrate.innerHTML="📊 "+(total?Math.floor(score/total*100):0)+"%";
+}
 
-        function updateWinrate() {
-            let total = score + loseBest;
-
-            if (total === 0) {
-                document.getElementById("winrate").innerHTML = "📊 Процент побед: 0%";
-                return;
-            }
-
-            let percent = Math.floor((score / total) * 100);
-            document.getElementById("winrate").innerHTML = "📊 Процент побед: " + percent + "%";
-        }
-
-
-// ================= ЗАМЕТКИ =================
-
-let notes = JSON.parse(localStorage.getItem("myNotesList")) || [];
-
-// создать заметку
-function addNote(text = "", pinned = false) {
-    let container = document.getElementById("notesList");
-
-    let noteDiv = document.createElement("div");
-    noteDiv.style.marginTop = "10px";
-
-    let textarea = document.createElement("textarea");
-    textarea.value = text;
-    textarea.rows = 4;
-    textarea.style.display = "block";
-
-    textarea.addEventListener("input", saveNotes);
-
-    // ❌ удалить
-    let deleteBtn = document.createElement("button");
-    deleteBtn.innerHTML = "❌";
-    deleteBtn.onclick = function () {
-        noteDiv.remove();
-        saveNotes();
-    };
-
-    // 📌 закрепить
-    let pinBtn = document.createElement("button");
-    pinBtn.innerHTML = "📌";
-    pinBtn.onclick = function () {
-        container.prepend(noteDiv);
-        saveNotes();
-    };
-
-    noteDiv.appendChild(textarea);
-    noteDiv.appendChild(pinBtn);
-    noteDiv.appendChild(deleteBtn);
-
-    if (pinned) {
-        container.prepend(noteDiv);
-    } else {
-        container.appendChild(noteDiv);
-
-saveNotes();
-
+// пароль
+function checkPassword(){
+    if(passwordInput.value=="123"){
+        notesContent.style.display="block";
     }
 }
 
-// сохранить
-function saveNotes() {
-    let notesData = [];
+function toggleNotes(){
+    notes.style.display = notes.style.display=="none"?"block":"none";
+}
 
-    let allNotes = document.querySelectorAll("#notesList > div");
+// заметки
+let saved = JSON.parse(localStorage.getItem("notes")||"[]");
 
-    allNotes.forEach(note => {
-        let text = note.querySelector("textarea").value;
+function addNote(text=""){
+    let div=document.createElement("div");
 
-        notesData.push({
-            text: text
-        });
+    let t=document.createElement("textarea");
+    t.value=text;
+
+    let del=document.createElement("button");
+    del.innerHTML="❌";
+    del.onclick=()=>{div.remove();saveNotes();};
+
+    let pin=document.createElement("button");
+    pin.innerHTML="📌";
+    pin.onclick=()=>{notesList.prepend(div);saveNotes();};
+
+    t.oninput=saveNotes;
+
+    div.appendChild(t);
+    div.appendChild(pin);
+    div.appendChild(del);
+    notesList.appendChild(div);
+}
+
+function saveNotes(){
+    let data=[];
+    document.querySelectorAll("#notesList textarea").forEach(t=>{
+        data.push(t.value);
     });
-
-    localStorage.setItem("myNotesList", JSON.stringify(notesData));
+    localStorage.setItem("notes",JSON.stringify(data));
 }
 
-// загрузка
-function loadNotes() {
-     notes.forEach(note => addNote(note.text));
-}
+saved.forEach(n=>addNote(n));
 
-// запуск
-loadNotes();
-
-function openMiniGame() {
-    document.getElementById("gameCanvas").style.display = "block";
+// мини игра
+function openMiniGame(){
+    gameCanvas.style.display="block";
     startGame();
 }
 
-function startGame() {
-    let canvas = document.getElementById("gameCanvas");
-    let ctx = canvas.getContext("2d");
+function startGame(){
+    let c=gameCanvas;
+    let ctx=c.getContext("2d");
 
-    let balls = [];
+    let balls=[];
 
-    // создаём 4 шарика
-    for (let i = 0; i < 4; i++) {
+    for(let i=0;i<4;i++){
         balls.push({
-            x: Math.random() * 350,
-            y: Math.random() * 350,
-            dx: (Math.random() - 0.5) * 4,
-            dy: (Math.random() - 0.5) * 4,
-            radius: 15
+            x:Math.random()*300+50,
+            y:Math.random()*300+50,
+            dx:Math.random()*2-1,
+            dy:Math.random()*2-1,
+            r:15
         });
     }
 
-    function update() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function update(){
+        ctx.clearRect(0,0,400,400);
 
-        balls.forEach(ball => {
-            ball.x += ball.dx;
-            ball.y += ball.dy;
+        balls.forEach((b,i)=>{
+            let t=balls[(i+1)%balls.length];
 
-            // от стен
-            if (ball.x < 0 || ball.x > canvas.width) ball.dx *= -1;
-            if (ball.y < 0 || ball.y > canvas.height) ball.dy *= -1;
+            let dx=t.x-b.x;
+            let dy=t.y-b.y;
+            let d=Math.sqrt(dx*dx+dy*dy)||1;
+
+            b.dx+=dx/d*0.05;
+            b.dy+=dy/d*0.05;
+
+            b.x+=b.dx;
+            b.y+=b.dy;
+
+            if(b.x<15||b.x>385) b.dx*=-1;
+            if(b.y<15||b.y>385) b.dy*=-1;
         });
 
-        // столкновения
-        for (let i = 0; i < balls.length; i++) {
-            for (let j = i + 1; j < balls.length; j++) {
-                let dx = balls[i].x - balls[j].x;
-                let dy = balls[i].y - balls[j].y;
-                let distance = Math.sqrt(dx * dx + dy * dy);
+        for(let i=0;i<balls.length;i++){
+            for(let j=i+1;j<balls.length;j++){
+                let dx=balls[j].x-balls[i].x;
+                let dy=balls[j].y-balls[i].y;
+                let d=Math.sqrt(dx*dx+dy*dy)||1;
 
-                if (distance < 30) {
-                    // отталкивание
-                    balls[i].dx *= -1;
-                    balls[i].dy *= -1;
-                    balls[j].dx *= -1;
-                    balls[j].dy *= -1;
+                if(d<30){
+                    balls[i].dx*=-1;
+                    balls[j].dx*=-1;
                 }
             }
         }
 
-        // рисуем
-        balls.forEach(ball => {
+        balls.forEach(b=>{
             ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-            ctx.fillStyle = "cyan";
+            ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+            ctx.fillStyle="cyan";
             ctx.fill();
         });
 
@@ -428,11 +293,7 @@ function startGame() {
 
     update();
 }
-
-
-    </script>
-
-<canvas id="gameCanvas" width="400" height="400" style="display:none; background:black; margin-top:20px;"></canvas>
+</script>
 
 </body>
 </html>
