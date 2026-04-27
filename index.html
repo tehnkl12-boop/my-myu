@@ -128,18 +128,21 @@ function check(){
     } else {
         lives--;
         livesEl.innerHTML="❤️ Жизни: "+lives;
+if (lives <= 0) {
+    loseCount++;
+    localStorage.setItem("loseScore", loseCount);
+    loseBestEl.innerHTML = "💀 Поражения: " + loseCount;
 
-        if(lives<=0){
-            loseCount++;
-            localStorage.setItem("loseScore",loseCount);
-            loseBestEl.innerHTML="💀 Поражения: "+loseCount;
-
-            result.innerHTML="💀 Было: "+secret;
-            updateWinrate();
-        } else {
-            result.innerHTML = user<secret ? "⬆️ Больше" : "⬇️ Меньше";
-        }
+    result.innerHTML = "💀 Ты проиграл! Было число " + secret;
+    updateWinrate();
+} else {
+    if (user < secret) {
+        result.innerHTML = "⬆️ Загаданное число больше!";
+    } else {
+        result.innerHTML = "⬇️ Загаданное число меньше!";
+          }
     }
+}
 }
 
 function restart(){
