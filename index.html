@@ -1,102 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Мини-игра</title>
+<title>Мини-игра</title>
 
-    <style>
-    body {
-        background: linear-gradient(135deg, #1e1e2f, #2a2a4a);
-        color: white;
-        font-family: Arial;
-        text-align: center;
-        margin-top: 50px;
-    }
+<style>
+body {
+    background: linear-gradient(135deg, #1e1e2f, #2a2a4a);
+    color: white;
+    font-family: Arial;
+    text-align: center;
+}
 
-    h1 {
-        font-size: 40px;
-        text-shadow: 0 0 10px #4dd0e1;
-    }
+button {
+    padding: 10px;
+    margin: 5px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+}
 
-    input {
-        padding: 12px;
-        font-size: 18px;
-        width: 120px;
-        border-radius: 10px;
-        border: none;
-        text-align: center;
-    }
+textarea {
+    display: block;
+    margin: 5px auto;
+}
 
-    button {
-        padding: 12px 25px;
-        font-size: 18px;
-        margin: 8px;
-        border-radius: 10px;
-        border: none;
-        background: linear-gradient(45deg, #4dd0e1, #26c6da);
-        cursor: pointer;
-    }
+#notes {
+    background: rgba(0,0,0,0.3);
+    padding: 10px;
+    border-radius: 10px;
+}
 
-    button:hover {
-        transform: scale(1.1);
-    }
-
-    textarea {
-        display: block;
-        margin: 5px auto;
-        border-radius: 10px;
-        padding: 8px;
-    }
-
-    #notes {
-        background: rgba(0,0,0,0.3);
-        padding: 15px;
-        border-radius: 15px;
-        margin-top: 15px;
-    }
-
-    #flashEffect {
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        background: yellow;
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    .flash-active {
-        animation: flash 0.5s;
-    }
-
-    @keyframes flash {
-        0% {opacity:0;}
-        50% {opacity:0.8;}
-        100% {opacity:0;}
-    }
-    </style>
+canvas {
+    background: black;
+    margin-top: 20px;
+}
+</style>
 </head>
 
 <body>
 
-<div id="flashEffect"></div>
-
 <h1>🎮 Угадай число</h1>
-<p>Я загадал число от 1 до 12</p>
 
 <input type="number" id="guess">
 <button onclick="check()">Проверить</button><br>
-<button onclick="restart()">🔄 Играть заново</button><br>
+<button onclick="restart()">🔄 Заново</button><br>
 
 <button id="secretBtn" onclick="toggleNotes()" style="display:none;">🔐 Заметки</button>
-<button id="secretGameBtn" onclick="openMiniGame()" style="display:none;">🎮 Секретная игра</button>
+<button id="secretGameBtn" onclick="openMiniGame()" style="display:none;">🎮 Мини-игра</button>
 
 <div id="notes" style="display:none;">
-    <input type="password" id="passwordInput" placeholder="Пароль">
-    <button onclick="checkPassword()">ОК</button>
+<input type="password" id="passwordInput" placeholder="Пароль">
+<button onclick="checkPassword()">ОК</button>
 
-    <div id="notesContent" style="display:none;">
-        <div id="notesList"></div>
-        <button onclick="addNote()">➕ Добавить</button>
-    </div>
+<div id="notesContent" style="display:none;">
+<div id="notesList"></div>
+<button onclick="addNote()">➕</button>
+</div>
 </div>
 
 <p id="result"></p>
@@ -106,19 +65,36 @@
 <p id="loseBest">💀 Поражения: 0</p>
 <p id="winrate">📊 0%</p>
 
-<canvas id="gameCanvas" width="400" height="400" style="display:none; background:black;"></canvas>
+<canvas id="gameCanvas" width="400" height="400" style="display:none;"></canvas>
 
 <script>
+
+// элементы
+let result = document.getElementById("result");
+let livesEl = document.getElementById("lives");
+let scoreEl = document.getElementById("score");
+let bestEl = document.getElementById("best");
+let loseBestEl = document.getElementById("loseBest");
+let winrateEl = document.getElementById("winrate");
+let guess = document.getElementById("guess");
+let secretBtn = document.getElementById("secretBtn");
+let secretGameBtn = document.getElementById("secretGameBtn");
+let notes = document.getElementById("notes");
+let notesContent = document.getElementById("notesContent");
+let passwordInput = document.getElementById("passwordInput");
+let notesList = document.getElementById("notesList");
+
+// игра
 let secret = Math.floor(Math.random()*12)+1;
 let lives = 3;
 let score = 0;
 let lastInputs = [];
 
-let best = localStorage.getItem("bestScore") || 0;
-let lose = localStorage.getItem("loseScore") || 0;
+let best = Number(localStorage.getItem("bestScore")) || 0;
+let loseCount = Number(localStorage.getItem("loseScore")) || 0;
 
-document.getElementById("best").innerHTML = "🥇 Рекорд: " + best;
-document.getElementById("loseBest").innerHTML = "💀 Поражения: " + lose;
+bestEl.innerHTML = "🥇 Рекорд: " + best;
+loseBestEl.innerHTML = "💀 Поражения: " + loseCount;
 
 function check(){
     let user = Number(guess.value);
@@ -147,19 +123,18 @@ function check(){
         }
 
         result.innerHTML="🎉 Угадал!";
-        flashEffect.classList.add("flash-active");
-        setTimeout(()=>flashEffect.classList.remove("flash-active"),500);
-
         updateWinrate();
+
     } else {
         lives--;
         livesEl.innerHTML="❤️ Жизни: "+lives;
 
         if(lives<=0){
-            lose++;
-            localStorage.setItem("loseScore",lose);
-            loseBest.innerHTML="💀 Поражения: "+lose;
-            result.innerHTML="💀 Проиграл ("+secret+")";
+            loseCount++;
+            localStorage.setItem("loseScore",loseCount);
+            loseBestEl.innerHTML="💀 Поражения: "+loseCount;
+
+            result.innerHTML="💀 Было: "+secret;
             updateWinrate();
         } else {
             result.innerHTML = user<secret ? "⬆️ Больше" : "⬇️ Меньше";
@@ -176,8 +151,8 @@ function restart(){
 }
 
 function updateWinrate(){
-    let total=score+lose;
-    winrate.innerHTML="📊 "+(total?Math.floor(score/total*100):0)+"%";
+    let total=score+loseCount;
+    winrateEl.innerHTML="📊 "+(total?Math.floor(score/total*100):0)+"%";
 }
 
 // пароль
@@ -226,24 +201,27 @@ function saveNotes(){
 
 saved.forEach(n=>addNote(n));
 
-// мини игра
+// мини игра (шары убегают от мышки)
 function openMiniGame(){
-    gameCanvas.style.display="block";
-    startGame();
-}
+    let canvas=document.getElementById("gameCanvas");
+    canvas.style.display="block";
+    let ctx=canvas.getContext("2d");
 
-function startGame(){
-    let c=gameCanvas;
-    let ctx=c.getContext("2d");
+    let mouse={x:200,y:200};
+
+    canvas.onmousemove = e=>{
+        let r=canvas.getBoundingClientRect();
+        mouse.x=e.clientX-r.left;
+        mouse.y=e.clientY-r.top;
+    };
 
     let balls=[];
-
-    for(let i=0;i<4;i++){
+    for(let i=0;i<5;i++){
         balls.push({
-            x:Math.random()*300+50,
-            y:Math.random()*300+50,
-            dx:Math.random()*2-1,
-            dy:Math.random()*2-1,
+            x:Math.random()*400,
+            y:Math.random()*400,
+            dx:0,
+            dy:0,
             r:15
         });
     }
@@ -251,37 +229,22 @@ function startGame(){
     function update(){
         ctx.clearRect(0,0,400,400);
 
-        balls.forEach((b,i)=>{
-            let t=balls[(i+1)%balls.length];
+        balls.forEach(b=>{
+            let dx=b.x-mouse.x;
+            let dy=b.y-mouse.y;
+            let dist=Math.sqrt(dx*dx+dy*dy)||1;
 
-            let dx=t.x-b.x;
-            let dy=t.y-b.y;
-            let d=Math.sqrt(dx*dx+dy*dy)||1;
-
-            b.dx+=dx/d*0.05;
-            b.dy+=dy/d*0.05;
+            if(dist<150){
+                b.dx+=(dx/dist)*0.5;
+                b.dy+=(dy/dist)*0.5;
+            }
 
             b.x+=b.dx;
             b.y+=b.dy;
 
-            if(b.x<15||b.x>385) b.dx*=-1;
-            if(b.y<15||b.y>385) b.dy*=-1;
-        });
+            if(b.x<0||b.x>400)b.dx*=-1;
+            if(b.y<0||b.y>400)b.dy*=-1;
 
-        for(let i=0;i<balls.length;i++){
-            for(let j=i+1;j<balls.length;j++){
-                let dx=balls[j].x-balls[i].x;
-                let dy=balls[j].y-balls[i].y;
-                let d=Math.sqrt(dx*dx+dy*dy)||1;
-
-                if(d<30){
-                    balls[i].dx*=-1;
-                    balls[j].dx*=-1;
-                }
-            }
-        }
-
-        balls.forEach(b=>{
             ctx.beginPath();
             ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
             ctx.fillStyle="cyan";
@@ -293,6 +256,7 @@ function startGame(){
 
     update();
 }
+
 </script>
 
 </body>
